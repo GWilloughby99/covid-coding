@@ -1,0 +1,110 @@
+---
+title: "google-mobility"
+author: "George WIlloughby"
+date: "11/06/2021"
+output: html_document
+---
+
+# Loading the mobility data
+
+Google mobility data is available at: https://www.google.com/covid19/mobility/ | The data shows how people are moving around which is particularly relevant because of the ongoing Covid-19 pandemic. This script will analyse the Retail and recreation mobility of major European Countries.
+
+```{r}
+#Loading Mobility data
+
+google_mobility_data <- read.csv("global-mobility-report.csv")
+
+google_mobility_data
+```
+
+# Viewing the data
+
+We are looking for the data on *Retail and recreation mobility* so we should look to remove any unwanted columns in the mobility dataset. It is quite large so removing the columns should also speed up the process. Firstly, we can use the colnames() function to show the column headers in the dataframe. We will be able to see what columns there are, what we need and also the index numbers for each column which will be useful for later on.
+
+```{r}
+colnames(google_mobility_data)
+```
+
+# Changing column names for clarity
+
+```{r}
+#Changing column names
+library(dplyr)
+
+google_mobility_data <- google_mobility_data %>%
+  rename(
+    country = country_region,
+    retail_recreation = retail_and_recreation_percent_change_from_baseline
+  )
+
+google_mobility_data
+```
+
+
+# Filter for the countries
+
+We can continue to analyse the data by filtering for the European countries we want to compare the UK to. The countries we want are: Belgium,	France,	Germany,	Italy,	Netherlands,	Poland,	Spain,	Sweden,	Switzerland. We can't simply filter by the country column because there are multiple entries per country. We can filter through the 'place_id' column.
+
+```{r}
+unique(google_mobility_data$place_id)
+```
+
+```{r}
+#Filtering for the countries
+library(dplyr)
+clean_google_mobility_data <- filter(google_mobility_data, place_id == "ChIJl5fz7WR9wUcR8g_mObTy60c" | place_id == "ChIJMVd4MymgVA0R99lHx5Y__Ws" | place_id == "ChIJa76xwh5ymkcRW-WRjmtd6HU" | place_id == "ChIJA9KNRIL-1BIRb15jJFz1LOI" | place_id == "ChIJu-SH28MJxkcRnwq9_851obM" | place_id == "ChIJuwtkpGSZAEcR6lXMScpzdQk" | place_id == "ChIJi7xhMnjjQgwR7KNoB5Qs7KY" | place_id == "ChIJ8fA1bTmyXEYRYm-tjaLruCI" |place_id == "ChIJYW1Zb-9kjEcRFXvLDxG1Vlw" | place_id == "ChIJqZHHQhE7WgIReiWIMkOg-MQ")
+
+unique(clean_google_mobility_data$country)
+```
+
+# View to check the filtering has worked
+
+```{r}
+clean_google_mobility_data
+```
+
+# Dropping unwanted column names
+
+We are going to compare the UK with other major European countries. We want to show over time so the columns we need are as follows: "country" [2], "place_id" [8], date" [9] and "retail_recreation" [10]. The figures in the brackets show the index number for each column.
+
+```{r}
+#Selecting the columns we want to keep
+
+clean_google_mobility_data <- clean_google_mobility_data[c(2,8,9,10)]
+
+clean_google_mobility_data
+```
+
+```{r}
+colnames(google_mobility_data)
+```
+
+# Calculating a 21-day moving average
+
+To calculate a 21-day moving average, we will need to activate or install if you haven't already, the zoo() package. We need to group by country, arrange by the latest date and then us the **zoo::rollmean** function.
+
+```{r}
+library(zoo)
+library(dplyr)
+
+rolling_clean_google_mobility_data <- clean_google_mobility_data %>%
+  dplyr::group_by(country) %>%
+  dplyr::arrange(desc(date)) %>%
+  dplyr::mutate(rolling_average_retail_recreation = zoo::rollmean(retail_recreation, k = 21, align="left", fill = NA)) %>%
+  ungroup()
+
+rolling_clean_google_mobility_data
+```
+
+# Exporting the data
+
+Now that we have cleaned up the dataset and calculated the average, we can export it.
+
+```{r}
+#Export
+
+write.csv(rolling_clean_google_mobility_data, "mobility_data.csv")
+```
+
+
+
