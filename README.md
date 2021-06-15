@@ -7,6 +7,10 @@
 
 ## Charts
 
+**First doses**
+
+<img src="/scripts/First doses/first-dose-cumulative.png">
+
 **Second doses**
 
 <img src="/scripts/Second dose/cumulative-second-dose.png">
