@@ -7,6 +7,10 @@
 
 ## Charts
 
+**Second doses**
+
+<img src="/scripts/Second dose/cumulative-second-dose.png">
+
 **Google mobility**
 
 <img src="/scripts/Google mobility/google-mobility.png">
